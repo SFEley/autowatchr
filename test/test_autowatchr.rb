@@ -21,8 +21,8 @@ class TestAutowatchr < Test::Unit::TestCase
       :ruby => "/usr/local/bin/ruby",
       :include => ".:lib:test"
     })
-    assert_equal "/usr/local/bin/ruby", aw.ruby
-    assert_equal ".:lib:test", aw.include
+    assert_equal "/usr/local/bin/ruby", aw.config.ruby
+    assert_equal ".:lib:test", aw.config.include
   end
 
   def test_new_with_block
@@ -32,10 +32,10 @@ class TestAutowatchr < Test::Unit::TestCase
       config.lib_dir = @lib_dir
       config.test_dir = @test_dir
     end
-    assert_equal "/usr/local/bin/ruby", aw.ruby
-    assert_equal ".:lib:test", aw.include
-    assert_equal @lib_dir, aw.lib_dir
-    assert_equal @test_dir, aw.test_dir
+    assert_equal "/usr/local/bin/ruby", aw.config.ruby
+    assert_equal ".:lib:test", aw.config.include
+    assert_equal @lib_dir, aw.config.lib_dir
+    assert_equal @test_dir, aw.config.test_dir
   end
 
   def test_auto_includes
@@ -44,15 +44,15 @@ class TestAutowatchr < Test::Unit::TestCase
       config.lib_dir = @lib_dir
       config.test_dir = @test_dir
     end
-    assert_equal ".:#{@lib_dir}:#{@test_dir}", aw.include
+    assert_equal ".:#{@lib_dir}:#{@test_dir}", aw.config.include
   end
 
   def test_defaults
     aw = Autowatchr.new(@script)
-    assert_equal "ruby", aw.ruby
-    assert_equal ".:lib:test", aw.include
-    assert_equal "lib", aw.lib_dir
-    assert_equal "test", aw.test_dir
+    assert_equal "ruby", aw.config.ruby
+    assert_equal ".:lib:test", aw.config.include
+    assert_equal "lib", aw.config.lib_dir
+    assert_equal "test", aw.config.test_dir
   end
 
   def test_watches_test_files

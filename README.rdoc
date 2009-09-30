@@ -32,3 +32,5 @@ Also see: test.watchr[http://github.com/viking/autowatchr/blob/master/test.watch
 == Copyright
 
 Copyright (c) 2009 Jeremy Stephens. See LICENSE for details.
+
+Many snippets were taken from ZenTest[http://github.com/seattlerb/ZenTest].
