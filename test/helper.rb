@@ -4,7 +4,7 @@ require 'mocha'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
-require 'autowatch'
+require 'autowatchr'
 
 class Test::Unit::TestCase
   def fake_result(name)

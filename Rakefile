@@ -4,11 +4,11 @@ require 'rake'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
-    gem.name = "autowatch"
+    gem.name = "autowatchr"
     gem.summary = %Q{TODO: one-line summary of your gem}
     gem.description = %Q{TODO: longer description of your gem}
     gem.email = "viking415@gmail.com"
-    gem.homepage = "http://github.com/viking/autowatch"
+    gem.homepage = "http://github.com/viking/autowatchr"
     gem.authors = ["Jeremy Stephens"]
     gem.add_development_dependency "thoughtbot-shoulda"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
@@ -50,7 +50,7 @@ Rake::RDocTask.new do |rdoc|
   end
 
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "autowatch #{version}"
+  rdoc.title = "autowatchr #{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/*.rb')
 end

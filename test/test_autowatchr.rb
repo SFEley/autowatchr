@@ -1,10 +1,9 @@
 require 'helper'
 
-class TestAutowatch < Test::Unit::TestCase
-  def new_autowatch(options = {})
-    Autowatch.new({
+class TestAutowatchr < Test::Unit::TestCase
+  def new_autowatchr(options = {})
+    Autowatchr.new({
       :ruby => "/usr/local/bin/ruby",
-      :include => ".:lib:test",
       :lib_dir => @lib_dir,
       :test_dir => @test_dir
     }.merge(options))
@@ -16,7 +15,7 @@ class TestAutowatch < Test::Unit::TestCase
   end
 
   def test_new_with_hash
-    aw = Autowatch.new({
+    aw = Autowatchr.new({
       :ruby => "/usr/local/bin/ruby",
       :include => ".:lib:test"
     })
@@ -25,7 +24,7 @@ class TestAutowatch < Test::Unit::TestCase
   end
 
   def test_new_with_block
-    aw = Autowatch.new do |config|
+    aw = Autowatchr.new do |config|
       config.ruby = "/usr/local/bin/ruby"
       config.include = ".:lib:test"
       config.lib_dir = @lib_dir
@@ -38,7 +37,7 @@ class TestAutowatch < Test::Unit::TestCase
   end
 
   def test_auto_includes
-    aw = Autowatch.new do |config|
+    aw = Autowatchr.new do |config|
       config.ruby = "/usr/local/bin/ruby"
       config.lib_dir = @lib_dir
       config.test_dir = @test_dir
@@ -47,7 +46,7 @@ class TestAutowatch < Test::Unit::TestCase
   end
 
   def test_defaults
-    aw = Autowatch.new
+    aw = Autowatchr.new
     assert_equal "ruby", aw.ruby
     assert_equal ".:lib:test", aw.include
     assert_equal "lib", aw.lib_dir
@@ -55,10 +54,10 @@ class TestAutowatch < Test::Unit::TestCase
   end
 
   def test_run_with_lib_file
-    aw = new_autowatch
+    aw = new_autowatchr
     result = fake_result("foo")
     aw.expects(:open).with(
-      "| /usr/local/bin/ruby -I.:lib:test #{@test_dir}/test_foo.rb", "r"
+      "| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb", "r"
     ).yields(result)
 
     aw.run("#{@lib_dir}/foo.rb")

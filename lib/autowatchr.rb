@@ -1,4 +1,4 @@
-class Autowatch
+class Autowatchr
   attr_writer :ruby, :include, :lib_dir, :test_dir
 
   def initialize(options = {})
@@ -39,7 +39,7 @@ class Autowatch
 
   private
     def run_test_file(file)
-      cmd = "%s -I%s %s" % [ @ruby, @include, file ]
+      cmd = "%s -I%s %s" % [ self.ruby, self.include, file ]
       open("| #{cmd}", "r") do |f|
       end
     end
