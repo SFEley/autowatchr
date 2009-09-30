@@ -10,7 +10,8 @@ begin
     gem.email = "viking415@gmail.com"
     gem.homepage = "http://github.com/viking/autowatchr"
     gem.authors = ["Jeremy Stephens"]
-    gem.add_development_dependency "thoughtbot-shoulda"
+    gem.add_dependency "watchr"
+    gem.add_development_dependency "mocha"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 rescue LoadError
