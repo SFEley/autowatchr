@@ -6,6 +6,16 @@ Provides some autotest-like behavior for watchr (http://github.com/mynyml/watchr
 
   gem install autowatchr --source http://gemcutter.org
 
+== Current features
+
+* Auto-watches test and lib files using the autotest layout
+
+== Todo
+
+* Optionally run only failing-tests
+* Optionally run entire suite after all tests pass
+* Cucumber support
+
 == Example use
 
 test.watchr
