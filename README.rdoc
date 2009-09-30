@@ -1,6 +1,6 @@
 = autowatchr
 
-Provides some autotest-like behavior to watchr (http://github.com/mynyml/watchr).
+Provides some autotest-like behavior for watchr (http://github.com/mynyml/watchr).
 
 == Example use
 
