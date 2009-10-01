@@ -17,20 +17,26 @@ class TestAutowatchr < Test::Unit::TestCase
   end
 
   def test_new_with_hash
-    aw = Autowatchr.new(@script, {
-      :ruby => "/usr/local/bin/ruby",
-      :include => ".:lib:test"
-    })
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = Autowatchr.new(@script, {
+        :ruby => "/usr/local/bin/ruby",
+        :include => ".:lib:test"
+      })
+    end
     assert_equal "/usr/local/bin/ruby", aw.config.ruby
     assert_equal ".:lib:test", aw.config.include
   end
 
   def test_new_with_block
-    aw = Autowatchr.new(@script) do |config|
-      config.ruby = "/usr/local/bin/ruby"
-      config.include = ".:lib:test"
-      config.lib_dir = @lib_dir
-      config.test_dir = @test_dir
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = Autowatchr.new(@script) do |config|
+        config.ruby = "/usr/local/bin/ruby"
+        config.include = ".:lib:test"
+        config.lib_dir = @lib_dir
+        config.test_dir = @test_dir
+      end
     end
     assert_equal "/usr/local/bin/ruby", aw.config.ruby
     assert_equal ".:lib:test", aw.config.include
@@ -39,16 +45,22 @@ class TestAutowatchr < Test::Unit::TestCase
   end
 
   def test_auto_includes
-    aw = Autowatchr.new(@script) do |config|
-      config.ruby = "/usr/local/bin/ruby"
-      config.lib_dir = @lib_dir
-      config.test_dir = @test_dir
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = Autowatchr.new(@script) do |config|
+        config.ruby = "/usr/local/bin/ruby"
+        config.lib_dir = @lib_dir
+        config.test_dir = @test_dir
+      end
     end
     assert_equal ".:#{@lib_dir}:#{@test_dir}", aw.config.include
   end
 
   def test_defaults
-    aw = Autowatchr.new(@script)
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = Autowatchr.new(@script)
+    end
     assert_equal "ruby", aw.config.ruby
     assert_equal ".:lib:test", aw.config.include
     assert_equal "lib", aw.config.lib_dir
@@ -56,28 +68,48 @@ class TestAutowatchr < Test::Unit::TestCase
   end
 
   def test_watches_test_files
-    md = ["#{@test_dir}/test_foo.rb"]
-    Autowatchr.any_instance.expects(:run_test_file).with("#{@test_dir}/test_foo.rb")
-    @script.expects(:watch).with("^#{@test_dir}.*/test_.*\.rb").yields(md)
-    new_autowatchr
+    @script.expects(:watch).with("^#{@test_dir}.*/test_.*\.rb$")
+    silence_stream(STDOUT) do
+      new_autowatchr
+    end
   end
 
   def test_watches_lib_files
-    md = ["#{@lib_dir}/foo.rb"]
-    Autowatchr.any_instance.expects(:run_lib_file).with("#{@lib_dir}/foo.rb")
-    @script.expects(:watch).with("^#{@lib_dir}.*/.*\.rb").yields(md)
-    new_autowatchr
+    @script.expects(:watch).with("^#{@lib_dir}.*/.*\.rb$")
+    silence_stream(STDOUT) do
+      new_autowatchr
+    end
   end
 
   def test_run_lib_file
-    aw = new_autowatchr
     result = fake_result("foo")
-    aw.expects(:open).with(
-      "| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb", "r"
-    ).yields(result)
+    expected_cmd = "| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb"
+    Autowatchr.any_instance.expects(:open).with(expected_cmd, "r").yields(result)
 
     silence_stream(STDOUT) do
+      aw = new_autowatchr
       aw.run_lib_file("#{@lib_dir}/foo.rb")
+    end
+  end
+
+  def test_running_multiple_test_files
+    result = fake_result("all")
+    expected_cmd = "| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e \"%w[#{@test_dir}/test_bar.rb #{@test_dir}/test_foo.rb].each { |f| require f }\""
+    Autowatchr.any_instance.expects(:open).with(expected_cmd, "r").yields(result)
+
+    silence_stream(STDOUT) do
+      aw = new_autowatchr
+      aw.run_test_file(["#{@test_dir}/test_bar.rb", "#{@test_dir}/test_foo.rb"])
+    end
+  end
+
+  def test_runs_all_test_files_on_start
+    result = fake_result("all")
+    expected_cmd = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{@test_dir}/test_foo.rb #{@test_dir}/test_bar.rb].each { |f| require f }"!
+    Autowatchr.any_instance.expects(:open).with(expected_cmd, "r").yields(result)
+
+    silence_stream(STDOUT) do
+      new_autowatchr
     end
   end
 end

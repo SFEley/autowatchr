@@ -1,6 +1,6 @@
 class Autowatchr
   class Config
-    attr_writer :ruby, :include, :lib_dir, :test_dir
+    attr_writer :ruby, :include, :lib_dir, :test_dir, :lib_regexp, :test_regexp
     def initialize(options = {})
       options.each_pair do |key, value|
         method = "#{key}="
@@ -25,15 +25,26 @@ class Autowatchr
     def test_dir
       @test_dir ||= "test"
     end
+
+    def lib_regexp
+      @lib_regexp ||= "^#{self.lib_dir}.*/.*\.rb$"
+    end
+
+    def test_regexp
+      @test_regexp ||= "^#{self.test_dir}.*/test_.*\.rb$"
+    end
   end
 
   attr_reader :config
-  attr_accessor :interrupted, :wants_to_quit
 
   def initialize(script, options = {})
     @config = Config.new(options)
     yield @config  if block_given?
     @script = script
+    @test_files = []
+
+    discover_files
+    run_all_tests
     start_watching_files
   end
 
@@ -45,8 +56,16 @@ class Autowatchr
     run_test_file(file)
   end
 
-  def run_test_file(file)
-    cmd = "%s -I%s %s" % [ @config.ruby, @config.include, file ]
+  def run_test_file(files)
+    files = [files]   unless files.is_a?(Array)
+    file_str = if files.length > 1
+                 "-e \"%w[#{files.join(" ")}].each { |f| require f }\""
+               else
+                 files[0]
+               end
+
+    cmd = "%s -I%s %s" % [ @config.ruby, @config.include, file_str ]
+    puts cmd
 
     # straight outta autotest
     results = []
@@ -69,8 +88,16 @@ class Autowatchr
   end
 
   private
+    def discover_files
+      @test_files = Dir.glob("#{@config.test_dir}/**/*").grep(/#{@config.test_regexp}/)
+    end
+
+    def run_all_tests
+      run_test_file(@test_files)
+    end
+
     def start_watching_files
-      @script.watch("^#{@config.test_dir}.*/test_.*\.rb") { |md| run_test_file(md[0]) }
-      @script.watch("^#{@config.lib_dir}.*/.*\.rb") { |md| run_lib_file(md[0]) }
+      @script.watch(@config.test_regexp) { |md| run_test_file(md[0]) }
+      @script.watch(@config.lib_regexp)  { |md| run_lib_file(md[0]) }
     end
 end

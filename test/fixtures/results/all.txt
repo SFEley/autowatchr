@@ -1,0 +1,14 @@
+Loaded suite -e
+Started
+F.F.
+Finished in 0.001231 seconds.
+
+  1) Failure:
+test_flunk(TestBar) [./test/test_bar.rb:9]:
+Flunked.
+
+  2) Failure:
+test_flunk(TestFoo) [./test/test_foo.rb:9]:
+Flunked.
+
+4 tests, 4 assertions, 2 failures, 0 errors
