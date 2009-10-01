@@ -1,0 +1,10 @@
+Loaded suite test/test_foo
+Started
+F
+Finished in 0.000645 seconds.
+
+  1) Failure:
+test_flunk(TestFoo) [test/test_foo.rb:9]:
+Flunked.
+
+1 tests, 1 assertions, 1 failures, 0 errors
