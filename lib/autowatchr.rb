@@ -1,6 +1,8 @@
 class Autowatchr
   class Config
-    attr_writer :ruby, :include, :lib_dir, :test_dir, :lib_regexp, :test_regexp
+    attr_writer :ruby, :include, :lib_dir, :test_dir, :lib_re, :test_re,
+      :failed_results_re, :completed_re
+
     def initialize(options = {})
       options.each_pair do |key, value|
         method = "#{key}="
@@ -26,12 +28,20 @@ class Autowatchr
       @test_dir ||= "test"
     end
 
-    def lib_regexp
-      @lib_regexp ||= "^#{self.lib_dir}.*/.*\.rb$"
+    def lib_re
+      @lib_re ||= '^%s.*/.*\.rb$' % self.lib_dir
     end
 
-    def test_regexp
-      @test_regexp ||= "^#{self.test_dir}.*/test_.*\.rb$"
+    def test_re
+      @test_re ||= '^%s.*/test_.*\.rb$' % self.test_dir
+    end
+
+    def failed_results_re
+      @failed_results_re ||= /^\s+\d+\) (?:Failure|Error):\n(.*?)\((.*?)\)/
+    end
+
+    def completed_re
+      @completed_re ||= /\d+ tests, \d+ assertions, \d+ failures, \d+ errors/
     end
   end
 
@@ -85,11 +95,12 @@ class Autowatchr
         end
       end
     end
+    handle_results(results.join)
   end
 
   private
     def discover_files
-      @test_files = Dir.glob("#{@config.test_dir}/**/*").grep(/#{@config.test_regexp}/)
+      @test_files = Dir.glob("#{@config.test_dir}/**/*").grep(/#{@config.test_re}/)
     end
 
     def run_all_tests
@@ -97,7 +108,21 @@ class Autowatchr
     end
 
     def start_watching_files
-      @script.watch(@config.test_regexp) { |md| run_test_file(md[0]) }
-      @script.watch(@config.lib_regexp)  { |md| run_lib_file(md[0]) }
+      @script.watch(@config.test_re) { |md| run_test_file(md[0]) }
+      @script.watch(@config.lib_re)  { |md| run_lib_file(md[0]) }
+    end
+
+    def handle_results(results)
+      failed = results.scan(@config.failed_results_re)
+      debug_p failed.inspect, "failed"
+      completed = results =~ @config.completed_re
+      debug_p completed.inspect
+
+      #self.files_to_test = consolidate_failures failed if completed
+
+      #color = completed && self.files_to_test.empty? ? :green : :red
+      #hook color unless $TESTING
+
+      #self.tainted = true unless self.files_to_test.empty?
     end
 end

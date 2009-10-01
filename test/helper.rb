@@ -21,3 +21,9 @@ class Test::Unit::TestCase
     stream.reopen(old_stream)
   end
 end
+
+def debug_p(obj, label = nil)
+  $stderr.print "#{label}: "  if label
+  $stderr.write obj.inspect
+  $stderr.puts
+end

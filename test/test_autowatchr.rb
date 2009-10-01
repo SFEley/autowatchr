@@ -65,17 +65,21 @@ class TestAutowatchr < Test::Unit::TestCase
     assert_equal ".:lib:test", aw.config.include
     assert_equal "lib", aw.config.lib_dir
     assert_equal "test", aw.config.test_dir
+    assert_equal '^lib.*/.*\.rb$', aw.config.lib_re
+    assert_equal '^test.*/test_.*\.rb$', aw.config.test_re
+    assert_equal /^\s+\d+\) (?:Failure|Error):\n(.*?)\((.*?)\)/, aw.config.failed_results_re
+    assert_equal /\d+ tests, \d+ assertions, \d+ failures, \d+ errors/, aw.config.completed_re
   end
 
   def test_watches_test_files
-    @script.expects(:watch).with("^#{@test_dir}.*/test_.*\.rb$")
+    @script.expects(:watch).with('^%s.*/test_.*\.rb$' % @test_dir)
     silence_stream(STDOUT) do
       new_autowatchr
     end
   end
 
   def test_watches_lib_files
-    @script.expects(:watch).with("^#{@lib_dir}.*/.*\.rb$")
+    @script.expects(:watch).with('^%s.*/.*\.rb$' % @lib_dir)
     silence_stream(STDOUT) do
       new_autowatchr
     end
@@ -110,6 +114,23 @@ class TestAutowatchr < Test::Unit::TestCase
 
     silence_stream(STDOUT) do
       new_autowatchr
+    end
+  end
+
+  def test_only_runs_failing_tests
+    result = fake_result("all")
+    Autowatchr.any_instance.stubs(:open).yields(result)
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = new_autowatchr
+    end
+
+    result = fake_result("foo_flunk")
+    expected_cmd = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
+    aw.expects(:open).with(expected_cmd, "r").yields(result)
+
+    silence_stream(STDOUT) do
+      aw.run_test_file("#{@test_dir}/test_foo.rb")
     end
   end
 end
