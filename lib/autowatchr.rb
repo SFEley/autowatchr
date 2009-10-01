@@ -1,7 +1,9 @@
+require 'erb'
+
 class Autowatchr
   class Config
-    attr_writer :ruby, :include, :lib_dir, :test_dir, :lib_re, :test_re,
-      :failed_results_re, :completed_re
+    attr_writer :command, :ruby, :include, :lib_dir, :test_dir, :lib_re,
+      :test_re, :failed_results_re, :completed_re
 
     def initialize(options = {})
       options.each_pair do |key, value|
@@ -10,6 +12,10 @@ class Autowatchr
           self.send(method, value)
         end
       end
+    end
+
+    def command
+      @command ||= "<%= ruby %> -I<%= include %> <%= predicate %>"
     end
 
     def ruby
@@ -43,6 +49,10 @@ class Autowatchr
     def completed_re
       @completed_re ||= /\d+ tests, \d+ assertions, \d+ failures, \d+ errors/
     end
+
+    def eval_command(predicate)
+      ERB.new(self.command).result(binding)
+    end
   end
 
   attr_reader :config
@@ -52,6 +62,7 @@ class Autowatchr
     yield @config  if block_given?
     @script = script
     @test_files = []
+    @failed_tests = {}
 
     discover_files
     run_all_tests
@@ -68,13 +79,29 @@ class Autowatchr
 
   def run_test_file(files)
     files = [files]   unless files.is_a?(Array)
-    file_str = if files.length > 1
-                 "-e \"%w[#{files.join(" ")}].each { |f| require f }\""
-               else
-                 files[0]
-               end
 
-    cmd = "%s -I%s %s" % [ @config.ruby, @config.include, file_str ]
+    passing  = []
+    commands = []
+    files.each do |file|
+      tests = @failed_tests[file]
+      if tests && !tests.empty?
+        predicate = %!#{file} -n "/^(#{tests.join("|")})$/"!
+        commands << @config.eval_command(predicate)
+      else
+        passing << file
+      end
+    end
+
+    if !passing.empty?
+      predicate = if passing.length > 1
+                    "-e \"%w[#{passing.join(" ")}].each { |f| require f }\""
+                  else
+                    passing[0]
+                  end
+      commands.unshift(@config.eval_command(predicate))
+    end
+
+    cmd = commands.join("; ")
     puts cmd
 
     # straight outta autotest
@@ -98,6 +125,10 @@ class Autowatchr
     handle_results(results.join)
   end
 
+  def classname_to_path(s)
+    File.join(@config.test_dir, underscore(s)+".rb")
+  end
+
   private
     def discover_files
       @test_files = Dir.glob("#{@config.test_dir}/**/*").grep(/#{@config.test_re}/)
@@ -114,15 +145,21 @@ class Autowatchr
 
     def handle_results(results)
       failed = results.scan(@config.failed_results_re)
-      debug_p failed.inspect, "failed"
       completed = results =~ @config.completed_re
-      debug_p completed.inspect
 
-      #self.files_to_test = consolidate_failures failed if completed
+      failed.each do |(test_name, class_name)|
+        key = classname_to_path(class_name)
+        @failed_tests[key] ||= []
+        @failed_tests[key] << test_name
+      end
+    end
 
-      #color = completed && self.files_to_test.empty? ? :green : :red
-      #hook color unless $TESTING
-
-      #self.tainted = true unless self.files_to_test.empty?
+    # File vendor/rails/activesupport/lib/active_support/inflector.rb, line 206
+    def underscore(camel_cased_word)
+      camel_cased_word.to_s.gsub(/::/, '/').
+        gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+        gsub(/([a-z\d])([A-Z])/,'\1_\2').
+        tr("-", "_").
+        downcase
     end
 end

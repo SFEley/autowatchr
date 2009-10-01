@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'test/unit'
 require 'mocha'
+require 'pp'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
@@ -23,7 +24,6 @@ class Test::Unit::TestCase
 end
 
 def debug_p(obj, label = nil)
-  $stderr.print "#{label}: "  if label
-  $stderr.write obj.inspect
-  $stderr.puts
+  $stderr.puts "#{label}: "  if label
+  $stderr.puts obj.inspect
 end

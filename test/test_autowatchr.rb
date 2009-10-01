@@ -109,12 +109,21 @@ class TestAutowatchr < Test::Unit::TestCase
 
   def test_runs_all_test_files_on_start
     result = fake_result("all")
-    expected_cmd = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{@test_dir}/test_foo.rb #{@test_dir}/test_bar.rb].each { |f| require f }"!
+    files = Dir.glob("#{@test_dir}/**/test_*.rb").join(" ")
+    expected_cmd = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{files}].each { |f| require f }"!
     Autowatchr.any_instance.expects(:open).with(expected_cmd, "r").yields(result)
 
     silence_stream(STDOUT) do
       new_autowatchr
     end
+  end
+
+  def test_mapping_test_classes_to_test_files
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = new_autowatchr
+    end
+    assert_equal "#{@test_dir}/test_foo.rb", aw.classname_to_path("TestFoo")
   end
 
   def test_only_runs_failing_tests
