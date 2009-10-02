@@ -46,10 +46,10 @@ test.watchr
   * Default: <tt>"test"</tt>
 * lib_re
   * The regexp to use for discovering library files
-  * Default: <tt>'^%s.*/.*\.rb$' % self.lib_dir</tt>
+  * Default: <tt>"^%s.*/.*\.rb$" % self.lib_dir</tt>
 * test_re
   * The regexp to use for discovering library files
-  * Default: <tt>^%s.*/test_.*\.rb$' % self.test_dir</tt>
+  * Default: <tt>"^%s.*/test_.*\.rb$" % self.test_dir</tt>
 * failing_only
   * Run only failing tests the next time a test file is run
   * Default: <tt>true</tt>
