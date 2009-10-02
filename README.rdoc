@@ -31,31 +31,31 @@ test.watchr
 === Configuration options
 * command
   * An ERB template for the command
-  * Default: "<%= ruby %> -I<%= include %> <%= predicate %>")
+  * Default: <tt>"<%= ruby %> -I<%= include %> <%= predicate %>"</tt>
 * ruby
   * The ruby executable to use
-  * Default: "ruby"
+  * Default: <tt>"ruby"</tt>
 * include
   * Paths to include (with -I)
-  * Default: ".:#{self.lib_dir}:#{self.test_dir}")
+  * Default: <tt>".:#{self.lib_dir}:#{self.test_dir}"</tt>
 * lib_dir
   * The lib path, where your library lives
-  * Default: "lib"
+  * Default: <tt>"lib"</tt>
 * test_dir
   * The test path, where your tests live
-  * Default: "test"
+  * Default: <tt>"test"</tt>
 * lib_re
   * The regexp to use for discovering library files
-  * Default: '^%s.*/.*\.rb$' % lib_dir
+  * Default: <tt>'^%s.*/.*\.rb$' % self.lib_dir</tt>
 * test_re
   * The regexp to use for discovering library files
-  * Default: '^%s.*/test_.*\.rb$' % test_dir
+  * Default: <tt>^%s.*/test_.*\.rb$' % self.test_dir</tt>
 * failing_only
   * Run only failing tests the next time a test file is run
-  * Default: true
+  * Default: <tt>true</tt>
 * run_suite
   * Run entire test suite after failing tests pass
-  * Default: true
+  * Default: <tt>true</tt>
 
 All of the config options are optional.  You can also pass in a hash instead of a block. Also see: test.watchr[http://github.com/viking/autowatchr/blob/master/test.watchr].
 
