@@ -142,4 +142,94 @@ class TestAutowatchr < Test::Unit::TestCase
       aw.run_test_file("#{@test_dir}/test_foo.rb")
     end
   end
+
+  def test_clears_failing_test_when_it_passes
+    result = fake_result("all")
+    Autowatchr.any_instance.stubs(:open).yields(result)
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = new_autowatchr
+    end
+
+    result = fake_result("foo_pass")
+    silence_stream(STDOUT) do
+      aw.run_test_file("#{@test_dir}/test_foo.rb")
+    end
+
+    result = fake_result("foo")
+    expected_cmd = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb!
+    aw.expects(:open).with(expected_cmd, "r").yields(result)
+    silence_stream(STDOUT) do
+      aw.run_test_file("#{@test_dir}/test_foo.rb")
+    end
+  end
+
+  def test_not_only_running_failing_tests
+    result = fake_result("all")
+    Autowatchr.any_instance.stubs(:open).yields(result)
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = new_autowatchr(:failing_only => false)
+    end
+
+    result = fake_result("foo")
+    expected_cmd = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb!
+    aw.expects(:open).with(expected_cmd, "r").yields(result)
+    silence_stream(STDOUT) do
+      aw.run_test_file("#{@test_dir}/test_foo.rb")
+    end
+  end
+
+  def test_running_entire_suite_after_green
+    result_1 = fake_result("all")
+    Autowatchr.any_instance.stubs(:open).yields(result_1)
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = new_autowatchr
+    end
+
+    result_2 = fake_result("foo_pass")
+    expected_cmd_2 = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
+    aw.expects(:open).with(expected_cmd_2, "r").yields(result_2)
+    silence_stream(STDOUT) do
+      aw.run_test_file("#{@test_dir}/test_foo.rb")
+    end
+
+    result_3 = fake_result("bar_pass")
+    expected_cmd_3 = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_bar.rb -n "/^(test_flunk)$/"!
+    aw.expects(:open).with(expected_cmd_3, "r").yields(result_3)
+
+    files = Dir.glob("#{@test_dir}/**/test_*.rb").join(" ")
+    result_4 = fake_result("all")
+    expected_cmd_4 = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{files}].each { |f| require f }"!
+    aw.expects(:open).with(expected_cmd_4, "r").yields(result_4)
+
+    silence_stream(STDOUT) do
+      aw.run_test_file("#{@test_dir}/test_bar.rb")
+    end
+  end
+
+  def test_not_running_entire_suite_after_green
+    result_1 = fake_result("all")
+    Autowatchr.any_instance.stubs(:open).yields(result_1)
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = new_autowatchr(:run_suite => false)
+    end
+
+    result_2 = fake_result("foo_pass")
+    expected_cmd_2 = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
+    aw.expects(:open).with(expected_cmd_2, "r").yields(result_2)
+    silence_stream(STDOUT) do
+      aw.run_test_file("#{@test_dir}/test_foo.rb")
+    end
+
+    result_3 = fake_result("bar_pass")
+    expected_cmd_3 = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_bar.rb -n "/^(test_flunk)$/"!
+    aw.expects(:open).with(expected_cmd_3, "r").yields(result_3)
+
+    silence_stream(STDOUT) do
+      aw.run_test_file("#{@test_dir}/test_bar.rb")
+    end
+  end
 end

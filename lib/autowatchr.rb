@@ -3,9 +3,11 @@ require 'erb'
 class Autowatchr
   class Config
     attr_writer :command, :ruby, :include, :lib_dir, :test_dir, :lib_re,
-      :test_re, :failed_results_re, :completed_re
+      :test_re, :failed_results_re, :completed_re, :failing_only, :run_suite
 
     def initialize(options = {})
+      @failing_only = @run_suite = true
+
       options.each_pair do |key, value|
         method = "#{key}="
         if self.respond_to?(method)
@@ -48,6 +50,14 @@ class Autowatchr
 
     def completed_re
       @completed_re ||= /\d+ tests, \d+ assertions, \d+ failures, \d+ errors/
+    end
+
+    def failing_only
+      @failing_only
+    end
+
+    def run_suite
+      @run_suite
     end
 
     def eval_command(predicate)
@@ -122,7 +132,7 @@ class Autowatchr
         end
       end
     end
-    handle_results(results.join)
+    handle_results(results.join, files)
   end
 
   def classname_to_path(s)
@@ -143,14 +153,31 @@ class Autowatchr
       @script.watch(@config.lib_re)  { |md| run_lib_file(md[0]) }
     end
 
-    def handle_results(results)
+    def handle_results(results, files_ran)
+      return  if !@config.failing_only
+      num_previously_failed = @failed_tests.length
+
       failed = results.scan(@config.failed_results_re)
       completed = results =~ @config.completed_re
 
+      previously_failed = @failed_tests.keys & files_ran
       failed.each do |(test_name, class_name)|
         key = classname_to_path(class_name)
-        @failed_tests[key] ||= []
-        @failed_tests[key] << test_name
+        if files_ran.include?(key)
+          @failed_tests[key] ||= []
+          @failed_tests[key] << test_name
+          previously_failed.delete(key)
+        else
+          puts "Couldn't map class to file: #{class_name}"
+        end
+      end
+
+      previously_failed.each do |file|
+        @failed_tests.delete(file)
+      end
+
+      if @config.run_suite && @failed_tests.empty? && num_previously_failed > 0
+        run_all_tests
       end
     end
 

@@ -1,0 +1,6 @@
+Loaded suite test/test_foo
+Started
+.
+Finished in 0.000219 seconds.
+
+1 tests, 0 assertions, 0 failures, 0 errors

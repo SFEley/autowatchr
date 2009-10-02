@@ -1,0 +1,6 @@
+Loaded suite test/test_bar
+Started
+..
+Finished in 0.000306 seconds.
+
+2 tests, 1 assertions, 0 failures, 0 errors

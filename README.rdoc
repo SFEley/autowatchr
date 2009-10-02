@@ -9,12 +9,13 @@ Provides some autotest-like behavior for watchr (http://github.com/mynyml/watchr
 == Current features
 
 * Auto-watches test and lib files using the autotest layout
+* Optionally run only failing-tests
+* Optionally run entire suite after all tests pass
 
 == Todo
 
-* Optionally run only failing-tests
-* Optionally run entire suite after all tests pass
 * Cucumber support
+* Expose algorithm to map test classes to test files
 
 == Example use
 
@@ -22,12 +23,41 @@ test.watchr
   require 'autowatchr'
 
   Autowatchr.new(self) do |config|
-    config.ruby = "jruby"           # default: "ruby"
-    config.lib_dir = "leet_lib"     # default: "lib"
-    config.test_dir = "leet_test"   # default: "test"
+    config.ruby = 'jruby'
+    config.lib_dir = 'leet_lib'
+    config.test_dir = 'leet_test'
   end
 
-Also see: test.watchr[http://github.com/viking/autowatchr/blob/master/test.watchr].
+=== Configuration options
+* command
+** An ERB template for the command
+** Default: "<%= ruby %> -I<%= include %> <%= predicate %>")
+* ruby
+** The ruby executable to use
+** Default: "ruby"
+* include
+** Paths to include (with -I)
+** Default: ".:#{self.lib_dir}:#{self.test_dir}")
+* lib_dir
+** The lib path, where your library lives
+** Default: "lib"
+* test_dir
+** The test path, where your tests live
+** Default: "test"
+* lib_re
+** The regexp to use for discovering library files
+** Default: '^%s.*/.*\.rb$' % lib_dir
+* test_re
+** The regexp to use for discovering library files
+** Default: '^%s.*/test_.*\.rb$' % test_dir
+* failing_only
+** Run only failing tests the next time a test file is run
+** Default: true
+* run_suite
+** Run entire test suite after failing tests pass
+** Default: true
+
+All of the config options are optional.  You can also pass in a hash instead of a block. Also see: test.watchr[http://github.com/viking/autowatchr/blob/master/test.watchr].
 
 == Copyright
 
