@@ -13,7 +13,7 @@ class TestAutowatchr < Test::Unit::TestCase
     @script = stub("fake watchr script", :watch => nil)
     @lib_dir = File.dirname(__FILE__) + "/fixtures/lib"
     @test_dir = File.dirname(__FILE__) + "/fixtures/test"
-    Autowatchr.any_instance.stubs(:open)
+    Autowatchr.any_instance.stubs_system_call
   end
 
   def test_new_with_hash
@@ -86,9 +86,8 @@ class TestAutowatchr < Test::Unit::TestCase
   end
 
   def test_run_lib_file
-    result = fake_result("foo")
-    expected_cmd = "| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb"
-    Autowatchr.any_instance.expects(:open).with(expected_cmd, "r").yields(result)
+    expected_cmd = "/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb"
+    Autowatchr.any_instance.expects_system_call(expected_cmd, "foo")
 
     silence_stream(STDOUT) do
       aw = new_autowatchr
@@ -97,9 +96,8 @@ class TestAutowatchr < Test::Unit::TestCase
   end
 
   def test_running_multiple_test_files
-    result = fake_result("all")
-    expected_cmd = "| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e \"%w[#{@test_dir}/test_bar.rb #{@test_dir}/test_foo.rb].each { |f| require f }\""
-    Autowatchr.any_instance.expects(:open).with(expected_cmd, "r").yields(result)
+    expected_cmd = "/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e \"%w[#{@test_dir}/test_bar.rb #{@test_dir}/test_foo.rb].each { |f| require f }\""
+    Autowatchr.any_instance.expects_system_call(expected_cmd, "all")
 
     silence_stream(STDOUT) do
       aw = new_autowatchr
@@ -108,10 +106,9 @@ class TestAutowatchr < Test::Unit::TestCase
   end
 
   def test_runs_all_test_files_on_start
-    result = fake_result("all")
     files = Dir.glob("#{@test_dir}/**/test_*.rb").join(" ")
-    expected_cmd = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{files}].each { |f| require f }"!
-    Autowatchr.any_instance.expects(:open).with(expected_cmd, "r").yields(result)
+    expected_cmd = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{files}].each { |f| require f }"!
+    Autowatchr.any_instance.expects_system_call(expected_cmd, "all")
 
     silence_stream(STDOUT) do
       new_autowatchr
@@ -127,16 +124,14 @@ class TestAutowatchr < Test::Unit::TestCase
   end
 
   def test_only_runs_failing_tests
-    result = fake_result("all")
-    Autowatchr.any_instance.stubs(:open).yields(result)
+    Autowatchr.any_instance.stubs_system_call("all")
     aw = nil
     silence_stream(STDOUT) do
       aw = new_autowatchr
     end
 
-    result = fake_result("foo_flunk")
-    expected_cmd = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
-    aw.expects(:open).with(expected_cmd, "r").yields(result)
+    expected_cmd = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
+    aw.expects_system_call(expected_cmd, "foo_flunk")
 
     silence_stream(STDOUT) do
       aw.run_test_file("#{@test_dir}/test_foo.rb")
@@ -144,65 +139,57 @@ class TestAutowatchr < Test::Unit::TestCase
   end
 
   def test_clears_failing_test_when_it_passes
-    result = fake_result("all")
-    Autowatchr.any_instance.stubs(:open).yields(result)
+    Autowatchr.any_instance.stubs_system_call("all")
     aw = nil
     silence_stream(STDOUT) do
       aw = new_autowatchr
     end
 
-    result = fake_result("foo_pass")
+    aw.stubs_system_call("foo_pass")
     silence_stream(STDOUT) do
       aw.run_test_file("#{@test_dir}/test_foo.rb")
     end
 
-    result = fake_result("foo")
-    expected_cmd = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb!
-    aw.expects(:open).with(expected_cmd, "r").yields(result)
+    expected_cmd = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb!
+    aw.expects_system_call(expected_cmd, "foo")
     silence_stream(STDOUT) do
       aw.run_test_file("#{@test_dir}/test_foo.rb")
     end
   end
 
   def test_not_only_running_failing_tests
-    result = fake_result("all")
-    Autowatchr.any_instance.stubs(:open).yields(result)
+    Autowatchr.any_instance.stubs_system_call("all")
     aw = nil
     silence_stream(STDOUT) do
       aw = new_autowatchr(:failing_only => false)
     end
 
-    result = fake_result("foo")
-    expected_cmd = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb!
-    aw.expects(:open).with(expected_cmd, "r").yields(result)
+    expected_cmd = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb!
+    aw.expects_system_call(expected_cmd, "foo")
     silence_stream(STDOUT) do
       aw.run_test_file("#{@test_dir}/test_foo.rb")
     end
   end
 
   def test_running_entire_suite_after_green
-    result_1 = fake_result("all")
-    Autowatchr.any_instance.stubs(:open).yields(result_1)
+    Autowatchr.any_instance.stubs_system_call("all")
     aw = nil
     silence_stream(STDOUT) do
       aw = new_autowatchr
     end
 
-    result_2 = fake_result("foo_pass")
-    expected_cmd_2 = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
-    aw.expects(:open).with(expected_cmd_2, "r").yields(result_2)
+    expected_cmd_2 = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
+    aw.expects_system_call(expected_cmd_2, "foo_pass")
     silence_stream(STDOUT) do
       aw.run_test_file("#{@test_dir}/test_foo.rb")
     end
 
-    result_3 = fake_result("bar_pass")
-    expected_cmd_3 = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_bar.rb -n "/^(test_flunk)$/"!
-    aw.expects(:open).with(expected_cmd_3, "r").yields(result_3)
+    expected_cmd_3 = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_bar.rb -n "/^(test_flunk)$/"!
+    aw.expects_system_call(expected_cmd_3, "bar_pass")
 
     files = Dir.glob("#{@test_dir}/**/test_*.rb").join(" ")
-    result_4 = fake_result("all")
-    expected_cmd_4 = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{files}].each { |f| require f }"!
-    aw.expects(:open).with(expected_cmd_4, "r").yields(result_4)
+    expected_cmd_4 = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{files}].each { |f| require f }"!
+    aw.expects_system_call(expected_cmd_4, "all")
 
     silence_stream(STDOUT) do
       aw.run_test_file("#{@test_dir}/test_bar.rb")
@@ -210,23 +197,20 @@ class TestAutowatchr < Test::Unit::TestCase
   end
 
   def test_not_running_entire_suite_after_green
-    result_1 = fake_result("all")
-    Autowatchr.any_instance.stubs(:open).yields(result_1)
+    Autowatchr.any_instance.stubs_system_call("all")
     aw = nil
     silence_stream(STDOUT) do
       aw = new_autowatchr(:run_suite => false)
     end
 
-    result_2 = fake_result("foo_pass")
-    expected_cmd_2 = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
-    aw.expects(:open).with(expected_cmd_2, "r").yields(result_2)
+    expected_cmd_2 = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
+    aw.expects_system_call(expected_cmd_2, "foo_pass")
     silence_stream(STDOUT) do
       aw.run_test_file("#{@test_dir}/test_foo.rb")
     end
 
-    result_3 = fake_result("bar_pass")
-    expected_cmd_3 = %!| /usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_bar.rb -n "/^(test_flunk)$/"!
-    aw.expects(:open).with(expected_cmd_3, "r").yields(result_3)
+    expected_cmd_3 = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_bar.rb -n "/^(test_flunk)$/"!
+    aw.expects_system_call(expected_cmd_3, "bar_pass")
 
     silence_stream(STDOUT) do
       aw.run_test_file("#{@test_dir}/test_bar.rb")

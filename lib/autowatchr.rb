@@ -65,6 +65,19 @@ class Autowatchr
     end
   end
 
+  class Tee < StringIO
+    attr_reader :io
+    def initialize(io)
+      super("")
+      @io = io
+    end
+
+    def write(string)
+      super
+      @io.write(string)
+    end
+  end
+
   attr_reader :config
 
   def initialize(script, options = {})
@@ -114,25 +127,8 @@ class Autowatchr
     cmd = commands.join("; ")
     puts cmd
 
-    # straight outta autotest
-    results = []
-    line = []
-    open("| #{cmd}", "r") do |f|
-      until f.eof? do
-        c = f.getc
-        putc c
-        line << c
-        if c == ?\n then
-          results << if RUBY_VERSION >= "1.9" then
-                       line.join
-                     else
-                       line.pack "c*"
-                     end
-          line.clear
-        end
-      end
-    end
-    handle_results(results.join, files)
+    results = execute_cmd(cmd)
+    handle_results(results, files)
   end
 
   def classname_to_path(s)
@@ -151,6 +147,20 @@ class Autowatchr
     def start_watching_files
       @script.watch(@config.test_re) { |md| run_test_file(md[0]) }
       @script.watch(@config.lib_re)  { |md| run_lib_file(md[0]) }
+    end
+
+    def execute_cmd(cmd)
+      tee = Tee.new($stdout)
+      $stdout = tee
+
+      system(cmd)
+
+      $stdout = tee.io
+      tee.rewind
+      results = tee.read
+      tee.close
+
+      results
     end
 
     def handle_results(results, files_ran)
