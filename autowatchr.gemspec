@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{autowatchr}
-  s.version = "0.0.0"
+  s.version = "0.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jeremy Stephens"]
-  s.date = %q{2009-09-30}
+  s.date = %q{2009-10-06}
   s.description = %q{Provides some autotest-like behavior for watchr (http://github.com/mynyml/watchr).}
   s.email = %q{viking415@gmail.com}
   s.extra_rdoc_files = [
@@ -26,9 +26,17 @@ Gem::Specification.new do |s|
      "autowatchr.gemspec",
      "lib/autowatchr.rb",
      "test.watchr",
+     "test/fixtures/lib/bar.rb",
      "test/fixtures/lib/foo.rb",
+     "test/fixtures/results/all.txt",
+     "test/fixtures/results/bar_flunk.txt",
+     "test/fixtures/results/bar_pass.txt",
      "test/fixtures/results/foo.txt",
+     "test/fixtures/results/foo_flunk.txt",
+     "test/fixtures/results/foo_pass.txt",
+     "test/fixtures/test.watchr",
      "test/fixtures/test/helper.rb",
+     "test/fixtures/test/test_bar.rb",
      "test/fixtures/test/test_foo.rb",
      "test/helper.rb",
      "test/test_autowatchr.rb"
@@ -40,7 +48,9 @@ Gem::Specification.new do |s|
   s.summary = %q{Provides some autotest-like behavior for watchr}
   s.test_files = [
     "test/fixtures/test/test_foo.rb",
+     "test/fixtures/test/test_bar.rb",
      "test/fixtures/test/helper.rb",
+     "test/fixtures/lib/bar.rb",
      "test/fixtures/lib/foo.rb",
      "test/test_autowatchr.rb",
      "test/helper.rb"
