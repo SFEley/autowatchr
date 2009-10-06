@@ -96,7 +96,7 @@ class TestAutowatchr < Test::Unit::TestCase
   end
 
   def test_running_multiple_test_files
-    expected_cmd = "/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e \"%w[#{@test_dir}/test_bar.rb #{@test_dir}/test_foo.rb].each { |f| require f }\""
+    expected_cmd = "/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e \"%w[#{@test_dir}/test_bar.rb #{@test_dir}/test_foo.rb].each do |f| require f end\""
     Autowatchr.any_instance.expects_system_call(expected_cmd, "all")
 
     silence_stream(STDOUT) do
@@ -107,7 +107,7 @@ class TestAutowatchr < Test::Unit::TestCase
 
   def test_runs_all_test_files_on_start
     files = Dir.glob("#{@test_dir}/**/test_*.rb").join(" ")
-    expected_cmd = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{files}].each { |f| require f }"!
+    expected_cmd = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{files}].each do |f| require f end"!
     Autowatchr.any_instance.expects_system_call(expected_cmd, "all")
 
     silence_stream(STDOUT) do
@@ -188,7 +188,7 @@ class TestAutowatchr < Test::Unit::TestCase
     aw.expects_system_call(expected_cmd_3, "bar_pass")
 
     files = Dir.glob("#{@test_dir}/**/test_*.rb").join(" ")
-    expected_cmd_4 = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{files}].each { |f| require f }"!
+    expected_cmd_4 = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -e "%w[#{files}].each do |f| require f end"!
     aw.expects_system_call(expected_cmd_4, "all")
 
     silence_stream(STDOUT) do

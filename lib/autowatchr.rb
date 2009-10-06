@@ -117,7 +117,7 @@ class Autowatchr
 
     if !passing.empty?
       predicate = if passing.length > 1
-                    "-e \"%w[#{passing.join(" ")}].each { |f| require f }\""
+                    "-e \"%w[#{passing.join(" ")}].each do |f| require f end\""
                   else
                     passing[0]
                   end
