@@ -121,6 +121,7 @@ class TestAutowatchr < Test::Unit::TestCase
       aw = new_autowatchr
     end
     assert_equal "#{@test_dir}/test_foo.rb", aw.classname_to_path("TestFoo")
+    assert_equal "#{@test_dir}/test_foo/test_baz.rb", aw.classname_to_path("TestFoo::TestBaz")
   end
 
   def test_only_runs_failing_tests
@@ -133,6 +134,26 @@ class TestAutowatchr < Test::Unit::TestCase
     expected_cmd = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
     aw.expects_system_call(expected_cmd, "foo_flunk")
 
+    silence_stream(STDOUT) do
+      aw.run_test_file("#{@test_dir}/test_foo.rb")
+    end
+  end
+
+  def test_only_registers_failing_test_once
+    Autowatchr.any_instance.stubs_system_call("all")
+    aw = nil
+    silence_stream(STDOUT) do
+      aw = new_autowatchr
+    end
+
+    expected_cmd = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
+    aw.expects_system_call(expected_cmd, "foo_flunk")
+    silence_stream(STDOUT) do
+      aw.run_test_file("#{@test_dir}/test_foo.rb")
+    end
+
+    expected_cmd = %!/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} #{@test_dir}/test_foo.rb -n "/^(test_flunk)$/"!
+    aw.expects_system_call(expected_cmd, "foo_flunk")
     silence_stream(STDOUT) do
       aw.run_test_file("#{@test_dir}/test_foo.rb")
     end

@@ -175,7 +175,7 @@ class Autowatchr
         key = classname_to_path(class_name)
         if files_ran.include?(key)
           @failed_tests[key] ||= []
-          @failed_tests[key] << test_name
+          @failed_tests[key] |= [test_name]
           previously_failed.delete(key)
         else
           puts "Couldn't map class to file: #{class_name}"
