@@ -16,6 +16,7 @@ Provides some autotest-like behavior for watchr (http://github.com/mynyml/watchr
 
 * Cucumber support
 * Expose algorithm to map test classes to test files
+* Add INT signal trapping
 
 == Example use
 
@@ -31,13 +32,17 @@ test.watchr
 === Configuration options
 * command
   * An ERB template for the command
-  * Default: <tt>"<%= ruby %> -I<%= include %> <%= predicate %>"</tt>
+  * Default: <tt>"<%= ruby %> -I<%= include %> <% list_of_requires.each { |lib| %>-r<%= lib %> <% } %><%= predicate %>"</tt>
 * ruby
   * The ruby executable to use
   * Default: <tt>"ruby"</tt>
 * include
   * Paths to include (with -I)
   * Default: <tt>".:#{self.lib_dir}:#{self.test_dir}"</tt>
+* require
+  * Libraries to include (with -r)
+  * Can either be a string or an array (Ex: <tt>config.require = %w{rubygems active_support}</tt>)
+  * Default: <tt>nil</tt>
 * lib_dir
   * The lib path, where your library lives
   * Default: <tt>"lib"</tt>

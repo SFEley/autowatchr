@@ -2,8 +2,9 @@ require 'erb'
 
 class Autowatchr
   class Config
-    attr_writer :command, :ruby, :include, :lib_dir, :test_dir, :lib_re,
-      :test_re, :failed_results_re, :completed_re, :failing_only, :run_suite
+    attr_writer :command, :ruby, :include, :require, :lib_dir, :test_dir,
+      :lib_re, :test_re, :failed_results_re, :completed_re, :failing_only,
+      :run_suite
 
     def initialize(options = {})
       @failing_only = @run_suite = true
@@ -17,7 +18,7 @@ class Autowatchr
     end
 
     def command
-      @command ||= "<%= ruby %> -I<%= include %> <%= predicate %>"
+      @command ||= "<%= ruby %> -I<%= include %> <% list_of_requires.each { |lib| %>-r<%= lib %> <% } %><%= predicate %>"
     end
 
     def ruby
@@ -26,6 +27,20 @@ class Autowatchr
 
     def include
       @include ||= ".:#{self.lib_dir}:#{self.test_dir}"
+    end
+
+    def require
+      @require
+    end
+
+    def list_of_requires
+      if @require.nil? || @require.empty?
+        []
+      elsif @require.is_a?(Array)
+        @require
+      else
+        [@require]
+      end
     end
 
     def lib_dir

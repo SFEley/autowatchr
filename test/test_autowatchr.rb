@@ -63,6 +63,7 @@ class TestAutowatchr < Test::Unit::TestCase
     end
     assert_equal "ruby", aw.config.ruby
     assert_equal ".:lib:test", aw.config.include
+    assert_equal nil, aw.config.require
     assert_equal "lib", aw.config.lib_dir
     assert_equal "test", aw.config.test_dir
     assert_equal '^lib.*/.*\.rb$', aw.config.lib_re
@@ -91,6 +92,26 @@ class TestAutowatchr < Test::Unit::TestCase
 
     silence_stream(STDOUT) do
       aw = new_autowatchr
+      aw.run_lib_file("#{@lib_dir}/foo.rb")
+    end
+  end
+
+  def test_run_lib_file_with_require
+    expected_cmd = "/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -rrubygems #{@test_dir}/test_foo.rb"
+    Autowatchr.any_instance.expects_system_call(expected_cmd, "foo")
+
+    silence_stream(STDOUT) do
+      aw = new_autowatchr(:require => 'rubygems')
+      aw.run_lib_file("#{@lib_dir}/foo.rb")
+    end
+  end
+
+  def test_run_lib_file_with_mulitple_requires
+    expected_cmd = "/usr/local/bin/ruby -I.:#{@lib_dir}:#{@test_dir} -rrubygems -rblah #{@test_dir}/test_foo.rb"
+    Autowatchr.any_instance.expects_system_call(expected_cmd, "foo")
+
+    silence_stream(STDOUT) do
+      aw = new_autowatchr(:require => %w{rubygems blah})
       aw.run_lib_file("#{@lib_dir}/foo.rb")
     end
   end
