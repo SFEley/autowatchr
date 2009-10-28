@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{autowatchr}
-  s.version = "0.1.3"
+  s.version = "0.1.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jeremy Stephens"]
-  s.date = %q{2009-10-14}
+  s.date = %q{2009-10-28}
   s.description = %q{Provides some autotest-like behavior for watchr (http://github.com/mynyml/watchr).}
   s.email = %q{viking415@gmail.com}
   s.extra_rdoc_files = [
