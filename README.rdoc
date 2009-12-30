@@ -20,7 +20,9 @@ Provides some autotest-like behavior for watchr (http://github.com/mynyml/watchr
 
 == Example use
 
-test.watchr
+Create a <tt>.watchr</tt> file for your project and simply declare an Autowatchr block within it:
+
+  # test/test.watchr
   require 'autowatchr'
 
   Autowatchr.new(self) do |config|
@@ -29,6 +31,9 @@ test.watchr
     config.test_dir = 'leet_test'
   end
 
+Your tests can then be run with:
+    $ watchr test/test.watchr
+    
 === Configuration options
 * command
   * An ERB template for the command
@@ -53,8 +58,11 @@ test.watchr
   * The regexp to use for discovering library files
   * Default: <tt>'^%s.*/.*\.rb$' % self.lib_dir</tt>
 * test_re
-  * The regexp to use for discovering library files
+  * The regexp to use for discovering test files
   * Default: <tt>'^%s.*/test_.*\.rb$' % self.test_dir</tt>
+* test_file
+  * The filename pattern for correlating test files with lib files.  The %s will be substituted for the basename of the lib file.
+  * Default: <tt>'test_%s.rb'</tt>
 * failing_only
   * Run only failing tests the next time a test file is run
   * Default: <tt>true</tt>

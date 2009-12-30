@@ -3,8 +3,8 @@ require 'erb'
 class Autowatchr
   class Config
     attr_writer :command, :ruby, :include, :require, :lib_dir, :test_dir,
-      :lib_re, :test_re, :failed_results_re, :completed_re, :failing_only,
-      :run_suite
+      :lib_re, :test_re, :test_file, :failed_results_re, :completed_re, 
+      :failing_only, :run_suite
 
     def initialize(options = {})
       @failing_only = @run_suite = true
@@ -58,6 +58,10 @@ class Autowatchr
     def test_re
       @test_re ||= '^%s.*/test_.*\.rb$' % self.test_dir
     end
+    
+    def test_file
+      @test_file ||= 'test_%s.rb'
+    end
 
     def failed_results_re
       @failed_results_re ||= /^\s+\d+\) (?:Failure|Error):\n(.*?)\((.*?)\)/
@@ -110,7 +114,7 @@ class Autowatchr
   def run_lib_file(file)
     md = file.match(%r{^#{@config.lib_dir}#{File::SEPARATOR}?(.+)$})
     parts = md[1].split(File::SEPARATOR)
-    parts[-1] = "test_#{parts[-1]}"
+    parts[-1] = config.test_file % File.basename(parts[-1],'.rb')
     file = "#{@config.test_dir}/" + File.join(parts)
     run_test_file(file)
   end
@@ -214,4 +218,5 @@ class Autowatchr
         tr("-", "_").
         downcase
     end
+    
 end
