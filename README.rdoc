@@ -25,7 +25,7 @@ Create a <tt>.watchr</tt> file for your project and simply declare an Autowatchr
   # test/test.watchr
   require 'autowatchr'
 
-  Autowatchr.new(self) do |config|
+  Autowatchr.new do |config|
     config.ruby = 'jruby'
     config.lib_dir = 'leet_lib'
     config.test_dir = 'leet_test'

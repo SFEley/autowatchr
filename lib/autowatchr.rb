@@ -99,10 +99,10 @@ class Autowatchr
 
   attr_reader :config
 
-  def initialize(script, options = {})
+  def initialize(script=nil, options = {})
     @config = Config.new(options)
     yield @config  if block_given?
-    @script = script
+    @script = script || self
     @test_files = []
     @failed_tests = {}
 
