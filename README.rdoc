@@ -72,6 +72,25 @@ Your tests can then be run with:
 
 All of the config options are optional.  You can also pass in a hash instead of a block. Also see: test.watchr[http://github.com/viking/autowatchr/blob/master/test.watchr].
 
+== Using with RSpec
+
+Autowatchr can easily be configured to work with the standard RSpec file hierarchy:
+
+    # spec/spec.watchr
+    require 'autowatchr'
+    
+    Autowatchr.new do |config|
+      config.test_dir = 'spec'
+      config.test_re = "^#{config.test_dir}/(.*)_spec\.rb$"
+      config.test_file = '%s_spec.rb'
+    end
+
+Be sure you have <tt>spec_helper.rb</tt> required in every spec file, or else put it in your <tt>.watchr</tt> file.
+
+== Prettier Results
+
+Autowatchr is compatible with the Watchr redgreen gem.  Install 'mynyml-redgreen' and simply require it in your <tt>.watchr</tt> file.
+
 == Copyright
 
 Copyright (c) 2009 Jeremy Stephens. See LICENSE for details.
