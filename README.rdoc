@@ -79,7 +79,7 @@ Autowatchr can easily be configured to work with the standard RSpec file hierarc
     # spec/spec.watchr
     require 'autowatchr'
     
-    Autowatchr.new do |config|
+    Autowatchr.new(self) do |config|
       config.test_dir = 'spec'
       config.test_re = "^#{config.test_dir}/(.*)_spec\.rb$"
       config.test_file = '%s_spec.rb'
